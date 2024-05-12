@@ -1,10 +1,194 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style type = "text/css">
+        canvas {
+            border: 2px solid black;
+        }
+    </style>
 </head>
 <body>
-$END$
+    <h1>Virus Spread</h1>
+    <canvas width = "600px" height = "400px"></canvas>
+    <p>Total People: <span id ="totalSpan"></span></p>
+    <p>Healthy: <span id ="healthySpan"></span></p>
+    <p>Sick: <span id ="sickSpan"></span></p>
+    <p>Cured: <span id ="curedSpan"></span></p>
+    <p>Dead: <span id ="deadSpan"></span></p>
+
+    <script type = "text/javascript" src="https://cdn.jsdelivr.net/gh/CaryACTvF/toolbox@c6b8005/aptools.js"></script>
+    <script type = "text/javascript">
+        const totalSpan= document.querySelector("#totalSpan");
+        const healthySpan= document.querySelector("#healthySpan");
+        const sickSpan= document.querySelector("#sickSpan");
+        const curedSpan =document.querySelector("#curedSpan");
+        const deadSpan =document.querySelector("#deadSpan");
+
+        let total= 0;
+        let healthy = 0;
+        let sick = 0;
+        let cured=0;
+        let dead=0;
+
+        const canvas= document.querySelector("canvas");
+        const ctx = canvas.getContext("2d");
+
+        const width = canvas.width;
+        const height = canvas.height;
+
+        const radius = 6;
+
+        let people = [];
+
+        function generateRandom(minNumber, maxNumber){
+            //random decimal 0-1
+            let randomDecimal = Math.random();
+            let range= maxNumber - minNumber;
+            let scaleUp = Math.round(randomDecimal*range);
+            let finalNumber = minNumber +scaleUp;
+            return finalNumber;
+        }
+
+        function getDistance(person1,person2){
+           let x1 = person1.x;
+           let x2 = person2.x;
+           let y1 = person1.y;
+           let y2 = person2.y;
+
+           let distance = Math.sqrt ((x2-x1)**2 + (y2-y1)**2);
+           return distance;
+        }
+
+        class Person {
+            constructor() {
+                this.x = generateRandom(0, width);
+                this.y = generateRandom(0, height);
+                this.speedX = Math.random() * 6 - 3; //moves in random directions
+                this.speedY = Math.random() * 6 - 3; //1-0.5
+                append(people, this);
+
+                //status: healthy, infected, cured, death
+                let sickNumber = generateRandom(0, 100);
+                if (sickNumber < 80) {
+                    this.status = "healthy";
+                    this.color = "blue";
+                } else {
+                    this.status = "sick";
+                    this.color = "red";
+                }
+
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.fillStyle = this.color;
+                ctx.arc(this.x, this.y, radius, 0, 2 * Math.PI);
+                ctx.fill();
+
+            }
+
+            update() {
+                this.x = this.x + this.speedX;
+                this.y = this.y + this.speedY;
+
+                if (this.x > width || this.x < 0) {
+                    this.speedX = -1 * this.speedX;
+                }
+                if (this.y > height || this.y < 0) {
+                    this.speedY = -1 * this.speedY;
+
+                }
+                people.forEach((person) => {
+                    if (getDistance(this, person) < 12 && this != person) {
+                        this.speedX = -1 * this.speedX;
+                        this.speedY = -1 * this.speedY;
+
+                        if (this.status == "sick" || person.status == "sick") {
+                            if (this.status != "cured" && this.status != "dead") {
+                                this.status = "sick";
+                                this.color = "red";
+                            }
+                            if (person.status != "cured" && person.status != "dead") {
+                                person.status = "sick";
+                                person.color = "red";
+                            }
+                        }
+                    }
+                })
+                if (this.status == "sick") {
+                    let getWell = generateRandom(0, 100);
+                    if (getWell < 1) {
+                        this.status = "cured";
+                        this.color = "green";
+                    }
+                    let dying = generateRandom(0, 100);
+
+                    if (dying < 1) {
+                        this.status = "dead";
+                        this.color = "black";
+                        this.speedX = 0;
+                        this.speedY = 0;
+                    }
+                }
+            }
+        }
+        function clearBackground(){
+            ctx.beginPath();
+            ctx.fillStyle= "white";
+            ctx.rect(0,0, width, height);
+            ctx.fill();
+        }
+
+        function makePeople(n){
+            repeat(n,function(){
+                let person = new Person();
+            })
+        }
+        window.addEventListener("load", function(){
+            makePeople(50);
+
+            function gameloop() {
+                total = people.length;
+                healthy = 0;
+                sick = 0;
+                cured = 0;
+                dead = 0;
+                clearBackground();
+
+                people.forEach((person) => {
+                    person.update();
+                    person.draw();
+
+                    if (person.status == "healthy") {
+                        healthy = healthy + 1;
+                    }
+                    else if (person.status == "sick") {
+                        sick = sick + 1;
+                    }
+                    else if (person.status == "cured") {
+                        cured = cured + 1;
+                    }
+                    else if (person.status == "dead") {
+                        dead = dead + 1;
+                    }
+                })
+
+                totalSpan.innerHTML = total;
+                healthySpan.innerHTML = healthy;
+                sickSpan.innerHTML = sick;
+                curedSpan.innerHTML = cured;
+                deadSpan.innerHTML = cured;
+
+                if ((sick + dead) != total && sick != 0) {
+                    requestAnimationFrame(gameloop);
+                }
+            }
+            gameloop();
+        })
+    </script>
+
+
 </body>
 </html>
