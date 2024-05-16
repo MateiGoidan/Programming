@@ -1,11 +1,13 @@
-import impl.*;
+import impl.SimulationCanvas;
 import javax.swing.SwingUtilities;
 
 public class Main {
 
   public static void main(String[] args) {
-    VirusSpreadSimulation simulation = new VirusSpreadSimulation();
+    SimulationCanvas simulation = new SimulationCanvas(600, 400);
 
-    SwingUtilities.invokeLater(() -> simulation.setVisible(true));
+    simulation.initPeople(3);
+
+    SwingUtilities.invokeLater(() -> simulation.startSimulation());
   }
 }
