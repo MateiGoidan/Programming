@@ -1,5 +1,7 @@
 package models;
 
+import impl.SimulationConfig;
+
 import java.awt.Color;
 import java.awt.Graphics;
 import java.util.List;
@@ -16,7 +18,7 @@ public class Person {
 
   private static final Random random = new Random();
 
-  public Person(int length, int height) {
+  public Person(int length, int height, SimulationConfig config) {
     this.length = length;
     this.height = height;
 
@@ -34,17 +36,17 @@ public class Person {
     doesn't work. If someone can figure this one out pleas tell me! */
 
     // Generating the speed
-    velocityX = random.nextInt(7) - 3;
-    velocityY = random.nextInt(7) - 3;
+    velocityX = random.nextInt(config.personSpeed* 2 +1) - config.personSpeed;
+    velocityY = random.nextInt(config.personSpeed* 2 +1) - config.personSpeed;
     // Ensure that the person moves at least in one direction
     while (velocityX == 0 && velocityY == 0) {
-      velocityX = random.nextInt(7) - 3;
-      velocityY = random.nextInt(7) - 3;
+      velocityX = random.nextInt(config.personSpeed* 2 +1) - config.personSpeed;
+      velocityY = random.nextInt(config.personSpeed* 2 +1) - config.personSpeed;
     }
 
     // Randomly select for the person to be sick or not
     int sickProbability = random.nextInt(100);
-    if (sickProbability < 80) {
+    if (sickProbability < config.initialSickProbability) {
       status = "healthy";
       color = Color.BLUE;
     } else {
@@ -54,6 +56,9 @@ public class Person {
   }
 
   public void update(List<Person> people) {
+    if ("dead".equals(status)){
+      return;
+    }
     if (testCollision()) {
       continuousBoundaryCollision();
     }
@@ -111,30 +116,49 @@ public class Person {
   private void interactWithOthers(List<Person> people) {
     for (Person other : people) {
       if (other != this && getDistance(this, other) <= 12 &&
-          other.color != Color.BLACK) {
+              other.color != Color.BLACK) {
         velocityX = -velocityX;
         velocityY = -velocityY;
 
-        // If at least one of them is sick
-        if ("sick".equals(status) || "sick".equals(other.status)) {
-          // If "this" person is not cured and not dead, it becomes sick
-          if (!"cured".equals(status) && !"dead".equals(status))
-            status = "sick";
+        adjustPositionAfterCollision(other);
 
-          // If "other" person is not cured and not dead, it becomes sick
-          if (!"cured".equals(other.status) && !"dead".equals(other.status))
-            other.status = "sick";
-        }
+        handleInfection(other);
       }
     }
+  }
+  private void adjustPositionAfterCollision(Person other) {
+    // Calcular el ángulo de la colisión
+    double angle = Math.atan2(other.centerY - this.centerY, other.centerX - this.centerX);
 
+    // Mover a cada persona en la dirección opuesta unos pocos píxeles
+    this.x -= 5 * Math.cos(angle);
+    this.y -= 5 * Math.sin(angle);
+    other.x += 5 * Math.cos(angle);
+    other.y += 5 * Math.sin(angle);
+
+    // Actualizar centro
+    this.centerX = this.x + 6;
+    this.centerY = this.y + 6;
+    other.centerX = other.x + 6;
+    other.centerY = other.y + 6;
+  }
+  private void handleInfection(Person other) {
+    if ("sick".equals(status) || "sick".equals(other.status)) {
+      if (!"cured".equals(status) && !"dead".equals(status))
+        status = "sick";
+      if (!"cured".equals(other.status) && !"dead".equals(other.status))
+        other.status = "sick";
+    }
+
+    int cureChance = 20;
+    int deathChance = 2;
     // Roll the dice to see if the person gets cured or die
     if ("sick".equals(status)) {
-      if (random.nextInt(100) < 1) {
+      if (random.nextInt(100) < cureChance) {
         status = "cured";
         color = Color.GREEN;
       }
-      if (random.nextInt(100) < 1) {
+      if (random.nextInt(50) < deathChance) {
         status = "dead";
         color = Color.BLACK;
         velocityX = 0;
@@ -158,5 +182,8 @@ public class Person {
     double dx = a.x - b.x;
     double dy = a.y - b.y;
     return Math.sqrt(dx * dx + dy * dy);
+  }
+  public String getStatus() {
+    return status;  // Retorna el estado actual de la persona
   }
 }
