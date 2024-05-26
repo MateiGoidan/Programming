@@ -22,6 +22,7 @@ public class SimulationCanvas extends JPanel {
   private int sickCount;
   private int curedCount;
   private int deadCount;
+  private long startTime;
 
   public SimulationCanvas(int width, int height, SimulationConfig config) {
     this.width = width;
@@ -42,6 +43,7 @@ public class SimulationCanvas extends JPanel {
   }
 
   public void startSimulation() {
+    startTime = System.currentTimeMillis();
     initPeople();
     frame.setVisible(true);
     new Thread (this:: gameLoop).start();
@@ -55,8 +57,11 @@ public class SimulationCanvas extends JPanel {
     return false;  // There is not one sick person
   }
   public void stopSimulation() {
+    long endTime= System.currentTimeMillis();
+    long duration = endTime- startTime;
     System.out.println("Simulation ended: No sick people remaining.");
     // Ends the simulation after having no sick people
+    System.out.println("Duration of simulation: "+ (duration/1000.0) + " seconds");
   }
 
 
@@ -73,7 +78,7 @@ public class SimulationCanvas extends JPanel {
     while (true) {
       if (!checkIfSickPeopleRemain()) {
         stopSimulation();
-        break;  // Sale del bucle si no quedan enfermos
+        break;  // Gets out of the loop if there is no sick people remaining
       }
       repaint();
       try {

@@ -30,10 +30,6 @@ public class Person {
     centerX = x + 6;
     centerY = y + 6;
     center = new int[2];
-    /* I don't know why this works. When we construct the "oval", x and y are
-    the top-left most point of the oval. By that logic in order to find the
-    center coordinates we should substract the radius of our circle but it
-    doesn't work. If someone can figure this one out pleas tell me! */
 
     // Generating the speed
     velocityX = random.nextInt(config.personSpeed* 2 +1) - config.personSpeed;
@@ -127,16 +123,16 @@ public class Person {
     }
   }
   private void adjustPositionAfterCollision(Person other) {
-    // Calcular el ángulo de la colisión
+    // Gets the angle of collision
     double angle = Math.atan2(other.centerY - this.centerY, other.centerX - this.centerX);
 
-    // Mover a cada persona en la dirección opuesta unos pocos píxeles
+    // Moves the person a few pixels in the other direction so that they don't get stuck
     this.x -= 5 * Math.cos(angle);
     this.y -= 5 * Math.sin(angle);
     other.x += 5 * Math.cos(angle);
     other.y += 5 * Math.sin(angle);
 
-    // Actualizar centro
+    // updates center
     this.centerX = this.x + 6;
     this.centerY = this.y + 6;
     other.centerX = other.x + 6;
@@ -184,6 +180,6 @@ public class Person {
     return Math.sqrt(dx * dx + dy * dy);
   }
   public String getStatus() {
-    return status;  // Retorna el estado actual de la persona
+    return status;  // Returns the actual state of the person
   }
 }
