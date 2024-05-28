@@ -1,17 +1,18 @@
 package models;
 
-import impl.SimulationConfig;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.util.List;
 import java.util.Random;
 
+import impl.SimulationConfig;
+
 public class Person {
-  private Pair<Integer, Integer> paintCoords; // Coords for painting the circle
-  private Pair<Integer, Integer> centerCoords; // Coords for the center of the circle
-  private Pair<Integer, Integer> velocity; // The velocity
-  private String status;    // Status: healthy, sick, cured or dead
-  private Color color;      // Color: blue, red, green, black
+  protected Pair<Integer, Integer> paintCoords; // Coords for painting the circle
+  protected Pair<Integer, Integer> centerCoords; // Coords for the center of the circle
+  protected Pair<Integer, Integer> velocity; // The velocity
+  protected String status;  // Status: healthy, sick, cured or dead
+  protected Color color;    // Color: blue, red, green, black
   private final int length; // Dimension reference
   private final int height;
 

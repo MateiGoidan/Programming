@@ -1,19 +1,25 @@
 package impl;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import models.*;
+
+import models.PatientZero;
+import models.Person;
 
 public class SimulationCanvas extends JPanel {
   private final int width;
   private final int height;
+  private final SimulationConfig config;
 
   private JFrame frame;
   private List<Person> people = new ArrayList<>();
-  private SimulationConfig config;
   private int healthyCount;
   private int sickCount;
   private int curedCount;
@@ -23,9 +29,9 @@ public class SimulationCanvas extends JPanel {
   public SimulationCanvas(int width, int height, SimulationConfig config) {
     this.width = width;
     this.height = height;
-    int totalHeight = height + 60;
     this.config = config;
 
+    int totalHeight = height + 60;
     setPreferredSize(new Dimension(width, totalHeight));
 
     // Creating the frame for GUI
@@ -67,6 +73,11 @@ public class SimulationCanvas extends JPanel {
     people = new ArrayList<>();
     for (int i = 0; i < config.getInitialPopulation(); i++) {
       people.add(new Person(width, height, config));
+    }
+
+    if (config.getInitialSickProbability() == -1) {
+      PatientZero patienZero = PatientZero.getInstance(width, height, config);
+      people.add(patienZero);
     }
   }
 
