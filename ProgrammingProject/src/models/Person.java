@@ -1,19 +1,18 @@
 package models;
 
 import impl.SimulationConfig;
-
 import java.awt.Color;
 import java.awt.Graphics;
 import java.util.List;
 import java.util.Random;
 
 public class Person {
-  private int center[];
-  private int x, y, centerX, centerY;
-  private int velocityX, velocityY;
-  private String status;
-  private Color color;
-  private final int length;
+  private Pair<Integer, Integer> paintCoords; // Coords for painting the circle
+  private Pair<Integer, Integer> centerCoords; // Coords for the center of the circle
+  private Pair<Integer, Integer> velocity; // The velocity
+  private String status;    // Status: healthy, sick, cured or dead
+  private Color color;      // Color: blue, red, green, black
+  private final int length; // Dimension reference
   private final int height;
 
   private static final Random random = new Random();
@@ -22,27 +21,32 @@ public class Person {
     this.length = length;
     this.height = height;
 
-    // TODO: Mybe check if there already exists a person on that coordinate so
-    // that they don't get stuck
+    int x, y;
     x = random.nextInt(length - 24) + 12;
     y = random.nextInt(height - 24) + 12;
+    this.paintCoords = new Pair<Integer, Integer>(x, y);
 
-    centerX = x + 6;
-    centerY = y + 6;
-    center = new int[2];
+    x += 6;
+    y += 6;
+    this.centerCoords = new Pair<Integer, Integer>(x, y);
 
-    // Generating the speed
-    velocityX = random.nextInt(config.personSpeed* 2 +1) - config.personSpeed;
-    velocityY = random.nextInt(config.personSpeed* 2 +1) - config.personSpeed;
+    x = random.nextInt(config.getPersonSpeed() * 2 + 1) -
+        config.getPersonSpeed();
+    y = random.nextInt(config.getPersonSpeed() * 2 + 1) -
+        config.getPersonSpeed();
+    this.velocity = new Pair<Integer, Integer>(x, y);
+
     // Ensure that the person moves at least in one direction
-    while (velocityX == 0 && velocityY == 0) {
-      velocityX = random.nextInt(config.personSpeed* 2 +1) - config.personSpeed;
-      velocityY = random.nextInt(config.personSpeed* 2 +1) - config.personSpeed;
+    while (velocity.getX() == 0 && velocity.getY() == 0) {
+      velocity.setX(random.nextInt(config.getPersonSpeed() * 2 + 1) -
+                    config.getPersonSpeed());
+      velocity.setY(random.nextInt(config.getPersonSpeed() * 2 + 1) -
+                    config.getPersonSpeed());
     }
 
     // Randomly select for the person to be sick or not
     int sickProbability = random.nextInt(100);
-    if (sickProbability < config.initialSickProbability) {
+    if (sickProbability > config.getInitialSickProbability()) {
       status = "healthy";
       color = Color.BLUE;
     } else {
@@ -51,25 +55,26 @@ public class Person {
     }
   }
 
-  public void update(List<Person> people) {
-    if ("dead".equals(status)){
+  public void update(List<Person> people, int deathProbability, int cureProbability) {
+    if ("dead".equals(status)) {
       return;
     }
+
     if (testCollision()) {
       continuousBoundaryCollision();
     }
 
-    interactWithOthers(people);
+    interactWithOthers(people, deathProbability, cureProbability);
 
-    x += velocityX;
-    centerX += velocityX;
-    y += velocityY;
-    centerY += velocityY;
+    paintCoords.setX(paintCoords.getX() + velocity.getX());
+    centerCoords.setX(centerCoords.getX() + velocity.getX());
+    paintCoords.setY(paintCoords.getY() + velocity.getY());
+    centerCoords.setY(centerCoords.getY() + velocity.getY());
   }
 
   private boolean testCollision() {
-    if (centerX - 6 <= 0 || centerX + 6 >= length || centerY - 6 <= 0 ||
-        centerY + 6 >= height)
+    if (centerCoords.getX() - 6 <= 0 || centerCoords.getX() + 6 >= length ||
+        centerCoords.getY() - 6 <= 0 || centerCoords.getY() + 6 >= height)
       return true;
 
     return false;
@@ -77,68 +82,80 @@ public class Person {
 
   // Continuous Collision Detection
   private void continuousBoundaryCollision() {
+    /*
+     * This method ensures that the circle won't go out of bounds within the
+     * simulation area. It calculates the position where the ball should be for
+     * the next frame and determines the exact position needed to hit the
+     * boundary perfectly. This method is effective if the velocity isn't too
+     * high.
+     */
     float t;
     int preX, preY;
-
-    preX = centerX + velocityX;
-    preY = centerY + velocityY;
+    preX = centerCoords.getX() + velocity.getX();
+    preY = centerCoords.getY() + velocity.getY();
 
     if (preX - 6 <= 0) {
-      t = (float)(0 + 6 - preX) / (float)(centerX - preX);
-      centerX = (int)(t * centerX + (1 - t) * preX);
-      x = centerX - 6;
-      velocityX = -velocityX;
+      t = (float)(0 + 6 - preX) / (float)(centerCoords.getX() - preX);
+      centerCoords.setX((int)(t * centerCoords.getX() + (1 - t) * preX));
+      paintCoords.setX(centerCoords.getX() - 6);
+      velocity.setX(-velocity.getX());
     } else if (preX + 6 >= 600) {
-      t = (float)(600 - 6 - preX) / (float)(centerX - preX);
-      centerX = (int)(t * centerX + (1 - t) * preX);
-      x = centerX - 6;
-      velocityX = -velocityX;
+      t = (float)(600 - 6 - preX) / (float)(centerCoords.getX() - preX);
+      centerCoords.setX((int)(t * centerCoords.getX() + (1 - t) * preX));
+      paintCoords.setX(centerCoords.getX() - 6);
+      velocity.setX(-velocity.getX());
     }
 
     if (preY - 6 <= 0) {
-      t = (float)((0 + 6 - preY) / (float)(centerY - preY));
-      centerY = (int)(t * centerY + (1 - t) * preY);
-      y = centerY - 6;
-      velocityY = -velocityY;
+      t = (float)((0 + 6 - preY) / (float)(centerCoords.getY() - preY));
+      centerCoords.setY((int)(t * centerCoords.getY() + (1 - t) * preY));
+      paintCoords.setY(centerCoords.getY() - 6);
+      velocity.setY(-velocity.getY());
     } else if (preY + 6 >= 400) {
-      t = (float)(400 - 6 - preY) / (float)(centerY - preY);
-      centerY = (int)(t * centerY + (1 - t) * preY);
-      y = centerY - 6;
-      velocityY = -velocityY;
+      t = (float)(400 - 6 - preY) / (float)(centerCoords.getY() - preY);
+      centerCoords.setY((int)(t * centerCoords.getY() + (1 - t) * preY));
+      paintCoords.setY(centerCoords.getY() - 6);
+      velocity.setY(-velocity.getY());
     }
   }
 
-  // TODO: this needs improvement?
-  private void interactWithOthers(List<Person> people) {
+  private void interactWithOthers(List<Person> people, int deathProbability, int cureProbability) {
     for (Person other : people) {
       if (other != this && getDistance(this, other) <= 12 &&
-              other.color != Color.BLACK) {
-        velocityX = -velocityX;
-        velocityY = -velocityY;
+          other.color != Color.BLACK) {
+        velocity.setX(-velocity.getX());
+        velocity.setY(-velocity.getY());
 
         adjustPositionAfterCollision(other);
 
-        handleInfection(other);
+        handleInfection(other, deathProbability, cureProbability);
       }
     }
   }
+
   private void adjustPositionAfterCollision(Person other) {
     // Gets the angle of collision
-    double angle = Math.atan2(other.centerY - this.centerY, other.centerX - this.centerX);
+    double angle =
+        Math.atan2(other.centerCoords.getY() - this.centerCoords.getY(),
+                   other.centerCoords.getX() - this.centerCoords.getX());
 
-    // Moves the person a few pixels in the other direction so that they don't get stuck
-    this.x -= 5 * Math.cos(angle);
-    this.y -= 5 * Math.sin(angle);
-    other.x += 5 * Math.cos(angle);
-    other.y += 5 * Math.sin(angle);
+    // Moves the person a few pixels in the other direction so that they don't
+    // get stuck
+    this.paintCoords.setX((int)(this.paintCoords.getX() - 5 * Math.cos(angle)));
+    this.paintCoords.setY((int)(this.paintCoords.getY() - 5 * Math.sin(angle)));
+    other.paintCoords.setX(
+        (int)(other.paintCoords.getX() + 5 * Math.cos(angle)));
+    other.paintCoords.setY(
+        (int)(other.paintCoords.getY() + 5 * Math.sin(angle)));
 
-    // updates center
-    this.centerX = this.x + 6;
-    this.centerY = this.y + 6;
-    other.centerX = other.x + 6;
-    other.centerY = other.y + 6;
+    // Updates center
+    this.centerCoords.setX(this.paintCoords.getX() + 6);
+    this.centerCoords.setY(this.paintCoords.getY() + 6);
+    other.centerCoords.setX(other.paintCoords.getX() + 6);
+    other.centerCoords.setY(other.paintCoords.getY() + 6);
   }
-  private void handleInfection(Person other) {
+
+  private void handleInfection(Person other, int deathProbability, int cureProbability) {
     if ("sick".equals(status) || "sick".equals(other.status)) {
       if (!"cured".equals(status) && !"dead".equals(status))
         status = "sick";
@@ -146,19 +163,17 @@ public class Person {
         other.status = "sick";
     }
 
-    int cureChance = 20;
-    int deathChance = 2;
     // Roll the dice to see if the person gets cured or die
     if ("sick".equals(status)) {
-      if (random.nextInt(100) < cureChance) {
+      if (random.nextInt(100) < cureProbability) {
         status = "cured";
         color = Color.GREEN;
       }
-      if (random.nextInt(50) < deathChance) {
+      if (random.nextInt(50) < deathProbability) {
         status = "dead";
         color = Color.BLACK;
-        velocityX = 0;
-        velocityY = 0;
+        velocity.setX(0);
+        velocity.setY(0);
       }
     }
   }
@@ -171,15 +186,16 @@ public class Person {
     }
 
     g.setColor(color);
-    g.fillOval(x, y, 12, 12);
+    g.fillOval(paintCoords.getX(), paintCoords.getY(), 12, 12);
   }
 
   private double getDistance(Person a, Person b) {
-    double dx = a.x - b.x;
-    double dy = a.y - b.y;
+    double dx = a.paintCoords.getX() - b.paintCoords.getX();
+    double dy = a.paintCoords.getY() - b.paintCoords.getY();
     return Math.sqrt(dx * dx + dy * dy);
   }
+
   public String getStatus() {
-    return status;  // Returns the actual state of the person
+    return status; // Returns the actual state of the person
   }
 }
