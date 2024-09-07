@@ -7,13 +7,11 @@ import java.util.List;
 import java.util.Random;
 
 public class Person {
-  protected Pair<Integer, Integer>
-      paintCoords; // Coords for painting the circle
-  protected Pair<Integer, Integer>
-      centerCoords; // Coords for the center of the circle
+  protected Pair<Integer, Integer> paintCoords; // Coords for painting the circle
+  protected Pair<Integer, Integer> centerCoords; // Coords for the center of the circle
   protected Pair<Integer, Integer> velocity; // The velocity
-  protected String status;  // Status: healthy, sick, cured or dead
-  protected Color color;    // Color: blue, red, green, black
+  protected String status; // Status: healthy, sick, cured or dead
+  protected Color color; // Color: blue, red, green, black
   private final int length; // Dimension reference
   private final int height;
 
@@ -41,9 +39,9 @@ public class Person {
     // Ensure that the person moves at least in one direction
     while (velocity.getX() == 0 && velocity.getY() == 0) {
       velocity.setX(random.nextInt(config.getPersonSpeed() * 2 + 1) -
-                    config.getPersonSpeed());
+          config.getPersonSpeed());
       velocity.setY(random.nextInt(config.getPersonSpeed() * 2 + 1) -
-                    config.getPersonSpeed());
+          config.getPersonSpeed());
     }
 
     // Randomly select for the person to be sick or not
@@ -59,7 +57,7 @@ public class Person {
 
   // TODO: Should be moved in Simulation
   public void update(List<Person> people, int deathProbability,
-                     int cureProbability) {
+      int cureProbability) {
     if ("dead".equals(status)) {
       return;
     }
@@ -86,15 +84,45 @@ public class Person {
 
   // Continuous Collision Detection
   private void continuousBoundaryCollision() {
-  private void boundaryCollision() {
-    if (x <= 0 || x >= width - 12)
-      speedX = -speedX;
-    if (y <= 0 || y >= height - 12)
-      speedY = -speedY;
+    /*
+     * This method ensures that the circle won't go out of bounds within the
+     * simulation area. It calculates the position where the ball should be for
+     * the next frame and determines the exact position needed to hit the
+     * boundary perfectly. This method is effective if the velocity isn't too
+     * high.
+     */
+    float t;
+    int preX, preY;
+    preX = centerCoords.getX() + velocity.getX();
+    preY = centerCoords.getY() + velocity.getY();
+
+    if (preX - 6 <= 0) {
+      t = (float) (0 + 6 - preX) / (float) (centerCoords.getX() - preX);
+      centerCoords.setX((int) (t * centerCoords.getX() + (1 - t) * preX));
+      paintCoords.setX(centerCoords.getX() - 6);
+      velocity.setX(-velocity.getX());
+    } else if (preX + 6 >= 600) {
+      t = (float) (600 - 6 - preX) / (float) (centerCoords.getX() - preX);
+      centerCoords.setX((int) (t * centerCoords.getX() + (1 - t) * preX));
+      paintCoords.setX(centerCoords.getX() - 6);
+      velocity.setX(-velocity.getX());
+    }
+
+    if (preY - 6 <= 0) {
+      t = (float) ((0 + 6 - preY) / (float) (centerCoords.getY() - preY));
+      centerCoords.setY((int) (t * centerCoords.getY() + (1 - t) * preY));
+      paintCoords.setY(centerCoords.getY() - 6);
+      velocity.setY(-velocity.getY());
+    } else if (preY + 6 >= 400) {
+      t = (float) (400 - 6 - preY) / (float) (centerCoords.getY() - preY);
+      centerCoords.setY((int) (t * centerCoords.getY() + (1 - t) * preY));
+      paintCoords.setY(centerCoords.getY() - 6);
+      velocity.setY(-velocity.getY());
+    }
   }
 
   private void interactWithOthers(List<Person> people, int deathProbability,
-                                  int cureProbability) {
+      int cureProbability) {
     for (Person other : people) {
       if (other != this && getDistance(this, other) <= 12 &&
           other.color != Color.BLACK) {
@@ -110,18 +138,17 @@ public class Person {
 
   private void adjustPositionAfterCollision(Person other) {
     // Gets the angle of collision
-    double angle =
-        Math.atan2(other.centerCoords.getY() - this.centerCoords.getY(),
-                   other.centerCoords.getX() - this.centerCoords.getX());
+    double angle = Math.atan2(other.centerCoords.getY() - this.centerCoords.getY(),
+        other.centerCoords.getX() - this.centerCoords.getX());
 
     // Moves the person a few pixels in the other direction so that they don't
     // get stuck
-    this.paintCoords.setX((int)(this.paintCoords.getX() - 5 * Math.cos(angle)));
-    this.paintCoords.setY((int)(this.paintCoords.getY() - 5 * Math.sin(angle)));
+    this.paintCoords.setX((int) (this.paintCoords.getX() - 5 * Math.cos(angle)));
+    this.paintCoords.setY((int) (this.paintCoords.getY() - 5 * Math.sin(angle)));
     other.paintCoords.setX(
-        (int)(other.paintCoords.getX() + 5 * Math.cos(angle)));
+        (int) (other.paintCoords.getX() + 5 * Math.cos(angle)));
     other.paintCoords.setY(
-        (int)(other.paintCoords.getY() + 5 * Math.sin(angle)));
+        (int) (other.paintCoords.getY() + 5 * Math.sin(angle)));
 
     // Updates center
     this.centerCoords.setX(this.paintCoords.getX() + 6);
@@ -131,7 +158,7 @@ public class Person {
   }
 
   private void handleInfection(Person other, int deathProbability,
-                               int cureProbability) {
+      int cureProbability) {
     if ("sick".equals(status) || "sick".equals(other.status)) {
       if (!"cured".equals(status) && !"dead".equals(status))
         status = "sick";
