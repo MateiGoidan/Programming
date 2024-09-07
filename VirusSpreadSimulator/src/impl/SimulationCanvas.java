@@ -6,10 +6,8 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-
 import models.PatientZero;
 import models.Person;
 
@@ -35,17 +33,20 @@ public class SimulationCanvas extends JPanel {
     setPreferredSize(new Dimension(width, totalHeight));
 
     // Creating the frame for GUI
-    frame = new JFrame("Virus Spread Simulation");
-    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    // TODO: Add an icon
+    frame = new JFrame("Virus Spread Simulation"); // set the title of the frame
+    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // exit out of the application
     frame.setLayout(new BorderLayout());
     frame.add(this, BorderLayout.CENTER);
     frame.pack();
-    frame.setVisible(true);
+    // frame.setVisible(true);
   }
 
   public void startSimulation() {
     startTime = System.currentTimeMillis();
+
     initPeople();
+
     frame.setVisible(true);
     new Thread(this::gameLoop).start();
   }
@@ -75,7 +76,7 @@ public class SimulationCanvas extends JPanel {
       people.add(new Person(width, height, config));
     }
 
-    if (config.getInitialSickProbability() == -1) {
+    if (config.getInitialSickProbability() == 0) {
       PatientZero patienZero = PatientZero.getInstance(width, height, config);
       people.add(patienZero);
     }
@@ -85,6 +86,7 @@ public class SimulationCanvas extends JPanel {
     while (true) {
       if (!checkIfSickPeopleRemain()) {
         stopSimulation();
+        Thread.interrupted();
         break; // Gets out of the loop if there is no sick people remaining
       }
       repaint();
@@ -96,13 +98,18 @@ public class SimulationCanvas extends JPanel {
     }
   }
 
+  // TODO: should be moved in Canvas
   protected void paintComponent(Graphics g) {
     super.paintComponent(g);
     clearBackground(g);
 
     for (Person person : people) {
-      person.update(people, config.getDeathProbability(),
-                    config.getCureProbability());
+      if (person instanceof PatientZero) {
+        person.update(people, config.getDeathProbability(), 0);
+      } else {
+        person.update(people, config.getDeathProbability(),
+                      config.getCureProbability());
+      }
       person.draw(g);
     }
     updateCounts();
@@ -113,6 +120,7 @@ public class SimulationCanvas extends JPanel {
     g.drawString("Dead people: " + deadCount, 10, height + 55);
   }
 
+  // TODO: should be moved in Canvas
   private void clearBackground(Graphics g) {
     g.setColor(Color.WHITE);
     g.fillRect(0, 0, width, height);
