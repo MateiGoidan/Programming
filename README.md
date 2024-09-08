@@ -53,7 +53,7 @@ public class PatientZero extends Person {
 
 All the files contain comments to help the person reading the code better understand what the functionality behind it is.
 
-[!alt text](ProjPictures/Comments.png)
+![alt text](ProjPictures/Comments.png)
 
 - Use of AI
 
