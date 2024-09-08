@@ -49,6 +49,12 @@ public class PatientZero extends Person {
 }
 ```
 
+- Comments 
+
+All the files contain comments to help the person reading the code better understand what the functionality behind it is.
+
+[!alt text](ProjPictures/Comments.png)
+
 - Use of AI
 
 Used AI mainly for learning faster the way the swing library from Java works.
