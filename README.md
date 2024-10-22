@@ -6,19 +6,19 @@ This project is supposed to represent a simulation where we could see how viruse
 
 # Tasks
 - User Stories:
-  ![alt text](ProjPictures/UserPoint.png)
+  ![alt text](pics/UserPoint.png)
 
 - UML Activity Diagram
-  ![alt text](ProjPictures/UMLDiagram.png)
+  ![alt text](pics/UMLDiagram.png)
 
 - Source Control with Git:
   - issue:
-  ![alt text](ProjPictures/Issues.png)
+  ![alt text](pics/Issues.png)
   - pull requests:
-  ![alt text](ProjPictures/PullRequest.png)
+  ![alt text](pics/PullRequest.png)
 
 - Bugs report and fixing them
-  ![alt image](ProjPictures/Bug.png)
+  ![alt image](pics/Bug.png)
 
 - Refactoring
 
@@ -53,10 +53,10 @@ public class PatientZero extends Person {
 
 All the files contain comments to help the person reading the code better understand what the functionality behind it is.
 
-![alt text](ProjPictures/Comments.png)
+![alt text](pics/Comments.png)
 
 - Use of AI
 
 Used AI mainly for learning faster the way the swing library from Java works.
   
-![alt text](ProjPictures/UseOfAI.png)
+![alt text](pics/UseOfAI.png)
